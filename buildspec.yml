@@ -4,8 +4,8 @@ phases:
   pre_build:
     commands:
       - echo "Setting up environment..."
-      - sudo apt-get update -y
-      - sudo apt-get install -y jq
+      - sudo yum update -y               # Use yum instead of apt-get
+      - sudo yum install -y jq           # Use yum to install jq
       - echo "Environment setup complete."
 
   build:
