@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing dependencies...
+      - sudo yum update -y
+      - sudo yum install -y jq
+  build:
+    commands:
+      - echo Starting AMI creation...
+      - INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Primary-Instance" --query "Reservations[0].Instances[0].InstanceId" --output text)
+      - echo "Instance ID: $INSTANCE_ID"
+      - AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "AMI-$(date +%Y-%m-%d-%H-%M-%S)" --query "ImageId" --output text)
+      - echo "Created AMI: $AMI_ID"
+      - echo $AMI_ID > ami-id.txt
+artifacts:
+  files:
+    - ami-id.txt
