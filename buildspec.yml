@@ -47,7 +47,7 @@ phases:
       - echo "Triggering Auto Scaling Group to apply the updated Launch Template..."
       - |
         aws autoscaling update-auto-scaling-group \
-          --auto-scaling-group-name MyAutoScalingGroup \
+          --auto-scaling-group-name AMI-Automation \
           --launch-template "LaunchTemplateName=MyLaunchTemplate,Version=$NEW_VERSION"
         echo "Auto Scaling Group updated successfully."
 
