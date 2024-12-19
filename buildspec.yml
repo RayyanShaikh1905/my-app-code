@@ -12,37 +12,44 @@ phases:
     commands:
       - echo "Starting the build process..."
       - echo "Fetching the Instance ID for the target instance..."
-      - INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Primary-Instance" --query "Reservations[0].Instances[0].InstanceId" --output text)
-      - echo "Instance ID: $INSTANCE_ID"
+      # Refactor variable assignment and use multi-line commands
+      - |
+        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Primary-Instance" --query "Reservations[0].Instances[0].InstanceId" --output text)
+        echo "Instance ID: $INSTANCE_ID"
 
       - echo "Creating a new AMI from the target instance..."
-      - AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "AMI-$(date +%Y-%m-%d-%H-%M-%S)" --query "ImageId" --output text)
-      - echo "New AMI created: $AMI_ID"
+      # Refactor variable assignment and use multi-line commands
+      - |
+        AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "AMI-$(date +%Y-%m-%d-%H-%M-%S)" --query "ImageId" --output text)
+        echo "New AMI created: $AMI_ID"
 
       - echo "Waiting for the AMI to become available..."
       - aws ec2 wait image-available --image-ids $AMI_ID
       - echo "AMI is now available."
 
       - echo "Creating a new version of the Launch Template with the updated AMI..."
-      - aws ec2 create-launch-template-version \
+      - |
+        aws ec2 create-launch-template-version \
           --launch-template-name MyLaunchTemplate \
           --source-version 1 \
           --launch-template-data "{\"ImageId\":\"$AMI_ID\"}"
 
       - echo "Setting the new version of the Launch Template as default..."
-      - NEW_VERSION=$(aws ec2 describe-launch-template-versions --launch-template-name MyLaunchTemplate --query "LaunchTemplateVersions[-1].VersionNumber" --output text)
-      - aws ec2 modify-launch-template \
+      - |
+        NEW_VERSION=$(aws ec2 describe-launch-template-versions --launch-template-name MyLaunchTemplate --query "LaunchTemplateVersions[-1].VersionNumber" --output text)
+        aws ec2 modify-launch-template \
           --launch-template-name MyLaunchTemplate \
           --default-version $NEW_VERSION
-      - echo "Launch Template updated to default version: $NEW_VERSION"
+        echo "Launch Template updated to default version: $NEW_VERSION"
 
   post_build:
     commands:
       - echo "Triggering Auto Scaling Group to apply the updated Launch Template..."
-      - aws autoscaling update-auto-scaling-group \
+      - |
+        aws autoscaling update-auto-scaling-group \
           --auto-scaling-group-name MyAutoScalingGroup \
           --launch-template "LaunchTemplateName=MyLaunchTemplate,Version=$NEW_VERSION"
-      - echo "Auto Scaling Group updated successfully."
+        echo "Auto Scaling Group updated successfully."
 
 artifacts:
   files:
