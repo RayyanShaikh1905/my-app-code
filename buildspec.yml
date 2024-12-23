@@ -54,9 +54,9 @@ phases:
         NEW_INSTANCE_ID=$(aws ec2 run-instances \
           --image-id $AMI_ID \
           --instance-type t2.micro \
-          --key-name MyKeyPair \
-          --subnet-id subnet-12345678 \
-          --security-group-ids sg-12345678 \
+          --key-name AMI-12 \
+          --subnet-id subnet-0bf8ab5c6f59beff3 \
+          --security-group-ids sg-027212517863d2d23 \
           --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=New-Instance-From-AMI}]' \
           --query "Instances[0].InstanceId" --output text)
         echo "New EC2 instance created: $NEW_INSTANCE_ID"
