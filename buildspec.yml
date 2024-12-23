@@ -12,13 +12,11 @@ phases:
     commands:
       - echo "Starting the build process..."
       - echo "Fetching the Instance ID for the target instance..."
-      # Refactor variable assignment and use multi-line commands
       - |
         INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Primary-Instance" --query "Reservations[0].Instances[0].InstanceId" --output text)
         echo "Instance ID: $INSTANCE_ID"
 
       - echo "Creating a new AMI from the target instance..."
-      # Refactor variable assignment and use multi-line commands
       - |
         AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "AMI-$(date +%Y-%m-%d-%H-%M-%S)" --query "ImageId" --output text)
         echo "New AMI created: $AMI_ID"
@@ -50,6 +48,18 @@ phases:
           --auto-scaling-group-name AMI-Automation \
           --launch-template "LaunchTemplateName=MyLaunchTemplate,Version=$NEW_VERSION"
         echo "Auto Scaling Group updated successfully."
+
+      - echo "Creating a new EC2 instance from the latest AMI..."
+      - |
+        NEW_INSTANCE_ID=$(aws ec2 run-instances \
+          --image-id $AMI_ID \
+          --instance-type t2.micro \
+          --key-name MyKeyPair \
+          --subnet-id subnet-12345678 \
+          --security-group-ids sg-12345678 \
+          --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=New-Instance-From-AMI}]' \
+          --query "Instances[0].InstanceId" --output text)
+        echo "New EC2 instance created: $NEW_INSTANCE_ID"
 
 artifacts:
   files:
